@@ -47,8 +47,8 @@ abstract class AbstractAdapterDefinitionBuilder implements AdapterDefinitionBuil
     {
         $method = method_exists($resolver, 'setOptions') ? 'setOptions' : 'setDefault';
 
-        $resolver->$method('permissions', function (OptionsResolver $subResolver) use ($method) {
-            $subResolver->$method('file', function (OptionsResolver $permsResolver) {
+        $resolver->$method('permissions', function (OptionsResolver $subResolver) use ($method): void {
+            $subResolver->$method('file', function (OptionsResolver $permsResolver): void {
                 $permsResolver->setDefault('public', 0644);
                 $permsResolver->setAllowedTypes('public', 'scalar');
 
@@ -56,7 +56,7 @@ abstract class AbstractAdapterDefinitionBuilder implements AdapterDefinitionBuil
                 $permsResolver->setAllowedTypes('private', 'scalar');
             });
 
-            $subResolver->$method('dir', function (OptionsResolver $permsResolver) {
+            $subResolver->$method('dir', function (OptionsResolver $permsResolver): void {
                 $permsResolver->setDefault('public', 0755);
                 $permsResolver->setAllowedTypes('public', 'scalar');
 

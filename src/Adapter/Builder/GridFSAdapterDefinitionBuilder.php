@@ -60,7 +60,7 @@ final class GridFSAdapterDefinitionBuilder extends AbstractAdapterDefinitionBuil
                 throw new InvalidArgumentException('In GridFS configuration, "doctrine_connection" and "mongodb_uri" options cannot be set together.');
             }
             $bucket = new Definition(Bucket::class);
-            $bucket->setFactory([self::class, 'initializeBucketFromDocumentManager']);
+            $bucket->setFactory(self::initializeBucketFromDocumentManager(...));
             $bucket->setArguments([
                 new Reference(sprintf('doctrine_mongodb.odm.%s_document_manager', $options['doctrine_connection'])),
                 $options['database'],
@@ -68,7 +68,7 @@ final class GridFSAdapterDefinitionBuilder extends AbstractAdapterDefinitionBuil
             ]);
         } elseif (isset($options['mongodb_uri'])) {
             $bucket = new Definition(Bucket::class);
-            $bucket->setFactory([self::class, 'initializeBucketFromConfig']);
+            $bucket->setFactory(self::initializeBucketFromConfig(...));
             $bucket->setArguments([
                 $options['mongodb_uri'],
                 $options['mongodb_uri_options'],

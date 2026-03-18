@@ -19,13 +19,10 @@ use Psr\Container\ContainerInterface;
  *
  * @internal
  */
-final class LazyFactory
+final readonly class LazyFactory
 {
-    private ContainerInterface $storages;
-
-    public function __construct(ContainerInterface $storages)
+    public function __construct(private ContainerInterface $storages)
     {
-        $this->storages = $storages;
     }
 
     public function createStorage(string $source, string $storageName): FilesystemOperator

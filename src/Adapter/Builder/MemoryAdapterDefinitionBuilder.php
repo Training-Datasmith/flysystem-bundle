@@ -34,7 +34,7 @@ final class MemoryAdapterDefinitionBuilder extends AbstractAdapterDefinitionBuil
         ];
     }
 
-    protected function configureOptions(OptionsResolver $resolver)
+    protected function configureOptions(OptionsResolver $resolver): void
     {
     }
 
