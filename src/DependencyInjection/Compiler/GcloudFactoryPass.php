@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace League\FlysystemBundle\DependencyInjection\Compiler;
 
 use League\Flysystem\GoogleCloudStorage\GoogleCloudStorageAdapter;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the flysystem-bundle project.
  *
@@ -56,7 +58,8 @@ final class AsyncAwsAdapterDefinitionBuilder extends AbstractAdapterDefinitionBu
         $definition->setArgument(0, new Reference($options['client']));
         $definition->setArgument(1, $options['bucket']);
         $definition->setArgument(2, $options['prefix']);
-        $definition->setArgument(3,
+        $definition->setArgument(
+            3,
             (new Definition(PortableVisibilityConverter::class))
                 ->setArgument(0, $defaultVisibilityForDirectories ?? Visibility::PUBLIC)
                 ->setShared(false)

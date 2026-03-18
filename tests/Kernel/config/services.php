@@ -1,11 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
-use Tests\League\FlysystemBundle\PublicUrlGeneratorMock;
-use Tests\League\FlysystemBundle\TemporaryUrlGeneratorMock;
 
 use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_iterator;
+
+use Tests\League\FlysystemBundle\PublicUrlGeneratorMock;
+
+use Tests\League\FlysystemBundle\TemporaryUrlGeneratorMock;
 
 return static function (ContainerConfigurator $container) {
     $services = $container->services()

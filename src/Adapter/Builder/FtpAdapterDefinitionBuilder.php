@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the flysystem-bundle project.
  *
@@ -112,7 +114,8 @@ final class FtpAdapterDefinitionBuilder extends AbstractAdapterDefinitionBuilder
         );
 
         $definition->setClass(FtpAdapter::class);
-        $definition->setArgument(0,
+        $definition->setArgument(
+            0,
             (new Definition(FtpConnectionOptions::class))
                 ->setFactory([FtpConnectionOptions::class, 'fromArray'])
                 ->addArgument($options)
