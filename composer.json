@@ -17,12 +17,12 @@
     ],
     "autoload": {
         "psr-4": {
-            "League\\FlysystemBundle\\": "src"
+            "League\\Flysystem_Bundle\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\League\\FlysystemBundle\\": "tests"
+            "Tests\\League\\Flysystem_Bundle\\": "tests"
         }
     },
     "require": {
