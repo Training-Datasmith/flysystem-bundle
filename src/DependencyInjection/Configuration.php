@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /*
  * This file is part of the flysystem-bundle project.
  *
@@ -10,59 +9,22 @@ declare(strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+namespace League\Flysystem_Bundle\Dependency_Injection;
 
-namespace League\FlysystemBundle\DependencyInjection;
-
-use Symfony\Component\Config\Definition\Builder\TreeBuilder;
-use Symfony\Component\Config\Definition\ConfigurationInterface;
-
+use Symfony\Component\Config\Definition\Builder\Tree_Builder;
+use Symfony\Component\Config\Definition\Configuration_Interface;
 /**
  * @author Titouan Galopin <galopintitouan@gmail.com>
  *
  * @internal
  */
-final class Configuration implements ConfigurationInterface
+final class Configuration implements Configuration_Interface
 {
-    public function getConfigTreeBuilder(): TreeBuilder
+    public function get_config_tree_builder(): Tree_Builder
     {
-        $treeBuilder = new TreeBuilder('flysystem');
-        $rootNode = $treeBuilder->getRootNode();
-
-        $rootNode
-            ->fixXmlConfig('storage')
-            ->children()
-                ->arrayNode('storages')
-                    ->useAttributeAsKey('name')
-                    ->arrayPrototype()
-                        ->performNoDeepMerging()
-                        ->children()
-                            ->scalarNode('adapter')->isRequired()->end()
-                            ->arrayNode('options')
-                                ->variablePrototype()
-                                ->end()
-                            ->defaultValue([])
-                            ->end()
-                            ->scalarNode('visibility')->defaultNull()->end()
-                            ->scalarNode('directory_visibility')->defaultNull()->end()
-                            ->booleanNode('retain_visibility')->defaultNull()->end()
-                            ->booleanNode('case_sensitive')->defaultTrue()->end()
-                            ->booleanNode('disable_asserts')->defaultFalse()->end()
-                            ->arrayNode('public_url')
-                                ->beforeNormalization()->castToArray()->end()
-                                ->defaultValue([])
-                                ->scalarPrototype()->end()
-                            ->end()
-                            ->scalarNode('path_normalizer')->defaultNull()->end()
-                            ->scalarNode('public_url_generator')->defaultNull()->end()
-                            ->scalarNode('temporary_url_generator')->defaultNull()->end()
-                            ->booleanNode('read_only')->defaultFalse()->end()
-                        ->end()
-                    ->end()
-                    ->defaultValue([])
-                ->end()
-            ->end()
-        ;
-
-        return $treeBuilder;
+        $tree_builder = new Tree_Builder('flysystem');
+        $root_node = $tree_builder->get_root_node();
+        $root_node->fix_xml_config('storage')->children()->array_node('storages')->use_attribute_as_key('name')->array_prototype()->perform_no_deep_merging()->children()->scalar_node('adapter')->is_required()->end()->array_node('options')->variable_prototype()->end()->default_value([])->end()->scalar_node('visibility')->default_null()->end()->scalar_node('directory_visibility')->default_null()->end()->boolean_node('retain_visibility')->default_null()->end()->boolean_node('case_sensitive')->default_true()->end()->boolean_node('disable_asserts')->default_false()->end()->array_node('public_url')->before_normalization()->cast_to_array()->end()->default_value([])->scalar_prototype()->end()->end()->scalar_node('path_normalizer')->default_null()->end()->scalar_node('public_url_generator')->default_null()->end()->scalar_node('temporary_url_generator')->default_null()->end()->boolean_node('read_only')->default_false()->end()->end()->end()->default_value([])->end()->end();
+        return $tree_builder;
     }
 }

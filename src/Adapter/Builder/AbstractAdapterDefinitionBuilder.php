@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /*
  * This file is part of the flysystem-bundle project.
  *
@@ -10,96 +9,65 @@ declare(strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+namespace League\Flysystem_Bundle\Adapter\Builder;
 
-namespace League\FlysystemBundle\Adapter\Builder;
-
-use League\Flysystem\UnixVisibility\PortableVisibilityConverter;
-use League\FlysystemBundle\Exception\MissingPackageException;
-use Symfony\Component\DependencyInjection\Definition;
-use Symfony\Component\OptionsResolver\OptionsResolver;
-
+use League\Flysystem\Unix_Visibility\Portable_Visibility_Converter;
+use League\Flysystem_Bundle\Exception\Missing_Package_Exception;
+use Symfony\Component\Dependency_Injection\Definition;
+use Symfony\Component\Options_Resolver\Options_Resolver;
 /**
  * @author Titouan Galopin <galopintitouan@gmail.com>
  *
  * @internal
  */
-abstract class AbstractAdapterDefinitionBuilder implements AdapterDefinitionBuilderInterface
+abstract class Abstract_Adapter_Definition_Builder implements Adapter_Definition_Builder_Interface
 {
-    final public function createDefinition(array $options, ?string $defaultVisibilityForDirectories): Definition
+    final public function create_definition(array $options, ?string $default_visibility_for_directories): Definition
     {
-        $this->ensureRequiredPackagesAvailable();
-
-        $resolver = new OptionsResolver();
-        $this->configureOptions($resolver);
-
+        $this->ensure_required_packages_available();
+        $resolver = new Options_Resolver();
+        $this->configure_options($resolver);
         $definition = new Definition();
-        $definition->setPublic(false);
-        $this->configureDefinition($definition, $resolver->resolve($options), $defaultVisibilityForDirectories);
-
+        $definition->set_public(false);
+        $this->configure_definition($definition, $resolver->resolve($options), $default_visibility_for_directories);
         return $definition;
     }
-
-    abstract protected function getRequiredPackages(): array;
-
-    abstract protected function configureOptions(OptionsResolver $resolver);
-
-    abstract protected function configureDefinition(Definition $definition, array $options, ?string $defaultVisibilityForDirectories);
-
-    protected function configureUnixOptions(OptionsResolver $resolver): void
+    abstract protected function get_required_packages(): array;
+    abstract protected function configure_options(Options_Resolver $resolver);
+    abstract protected function configure_definition(Definition $definition, array $options, ?string $default_visibility_for_directories);
+    protected function configure_unix_options(Options_Resolver $resolver): void
     {
         $method = method_exists($resolver, 'setOptions') ? 'setOptions' : 'setDefault';
-
-        $resolver->$method('permissions', function (OptionsResolver $subResolver) use ($method): void {
-            $subResolver->$method('file', function (OptionsResolver $permsResolver): void {
-                $permsResolver->setDefault('public', 0644);
-                $permsResolver->setAllowedTypes('public', 'scalar');
-
-                $permsResolver->setDefault('private', 0600);
-                $permsResolver->setAllowedTypes('private', 'scalar');
+        $resolver->{$method}('permissions', function (Options_Resolver $sub_resolver) use ($method): void {
+            $sub_resolver->{$method}('file', function (Options_Resolver $perms_resolver): void {
+                $perms_resolver->set_default('public', 0644);
+                $perms_resolver->set_allowed_types('public', 'scalar');
+                $perms_resolver->set_default('private', 0600);
+                $perms_resolver->set_allowed_types('private', 'scalar');
             });
-
-            $subResolver->$method('dir', function (OptionsResolver $permsResolver): void {
-                $permsResolver->setDefault('public', 0755);
-                $permsResolver->setAllowedTypes('public', 'scalar');
-
-                $permsResolver->setDefault('private', 0700);
-                $permsResolver->setAllowedTypes('private', 'scalar');
+            $sub_resolver->{$method}('dir', function (Options_Resolver $perms_resolver): void {
+                $perms_resolver->set_default('public', 0755);
+                $perms_resolver->set_allowed_types('public', 'scalar');
+                $perms_resolver->set_default('private', 0700);
+                $perms_resolver->set_allowed_types('private', 'scalar');
             });
         });
     }
-
-    protected function createUnixDefinition(array $permissions, string $defaultVisibilityForDirectories): Definition
+    protected function create_unix_definition(array $permissions, string $default_visibility_for_directories): Definition
     {
-        return (new Definition(PortableVisibilityConverter::class))
-            ->setFactory([PortableVisibilityConverter::class, 'fromArray'])
-            ->addArgument([
-                'file' => [
-                    'public' => (int) $permissions['file']['public'],
-                    'private' => (int) $permissions['file']['private'],
-                ],
-                'dir' => [
-                    'public' => (int) $permissions['dir']['public'],
-                    'private' => (int) $permissions['dir']['private'],
-                ],
-            ])
-            ->addArgument($defaultVisibilityForDirectories)
-            ->setShared(false)
-        ;
+        return (new Definition(Portable_Visibility_Converter::class))->set_factory([Portable_Visibility_Converter::class, 'fromArray'])->add_argument(['file' => ['public' => (int) $permissions['file']['public'], 'private' => (int) $permissions['file']['private']], 'dir' => ['public' => (int) $permissions['dir']['public'], 'private' => (int) $permissions['dir']['private']]])->add_argument($default_visibility_for_directories)->set_shared(false);
     }
-
-    private function ensureRequiredPackagesAvailable(): void
+    private function ensure_required_packages_available(): void
     {
-        $missingPackages = [];
-        foreach ($this->getRequiredPackages() as $requiredClass => $packageName) {
-            if (!class_exists($requiredClass)) {
-                $missingPackages[] = $packageName;
+        $missing_packages = [];
+        foreach ($this->get_required_packages() as $required_class => $package_name) {
+            if (!class_exists($required_class)) {
+                $missing_packages[] = $package_name;
             }
         }
-
-        if (!$missingPackages) {
+        if (!$missing_packages) {
             return;
         }
-
-        throw new MissingPackageException(sprintf("Missing package%s, to use the \"%s\" adapter, run:\n\ncomposer require %s", \count($missingPackages) > 1 ? 's' : '', $this->getName(), implode(' ', $missingPackages)));
+        throw new Missing_Package_Exception(sprintf("Missing package%s, to use the \"%s\" adapter, run:\n\ncomposer require %s", \count($missing_packages) > 1 ? 's' : '', $this->get_name(), implode(' ', $missing_packages)));
     }
 }

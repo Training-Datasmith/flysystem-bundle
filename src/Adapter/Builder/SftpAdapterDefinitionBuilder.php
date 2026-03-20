@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /*
  * This file is part of the flysystem-bundle project.
  *
@@ -10,118 +9,86 @@ declare(strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+namespace League\Flysystem_Bundle\Adapter\Builder;
 
-namespace League\FlysystemBundle\Adapter\Builder;
-
-use League\Flysystem\PhpseclibV2\SftpAdapter as SftpAdapterLegacy;
-use League\Flysystem\PhpseclibV2\SftpConnectionProvider as SftpConnectionProviderLegacy;
-use League\Flysystem\PhpseclibV3\SftpAdapter;
-use League\Flysystem\PhpseclibV3\SftpConnectionProvider;
+use League\Flysystem\Phpseclib_V2\Sftp_Adapter as SftpAdapterLegacy;
+use League\Flysystem\Phpseclib_V2\Sftp_Connection_Provider as SftpConnectionProviderLegacy;
+use League\Flysystem\Phpseclib_V3\Sftp_Adapter;
+use League\Flysystem\Phpseclib_V3\Sftp_Connection_Provider;
 use League\Flysystem\Visibility;
-use Symfony\Component\DependencyInjection\Definition;
-use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\OptionsResolver\OptionsResolver;
-
+use Symfony\Component\Dependency_Injection\Definition;
+use Symfony\Component\Dependency_Injection\Reference;
+use Symfony\Component\Options_Resolver\Options_Resolver;
 /**
  * @author Titouan Galopin <galopintitouan@gmail.com>
  *
  * @internal
  */
-final class SftpAdapterDefinitionBuilder extends AbstractAdapterDefinitionBuilder
+final class Sftp_Adapter_Definition_Builder extends Abstract_Adapter_Definition_Builder
 {
-    public function getName(): string
+    public function get_name(): string
     {
         return 'sftp';
     }
-
-    protected function getRequiredPackages(): array
+    protected function get_required_packages(): array
     {
-        $adapterFqcn = SftpAdapter::class;
-        $packageRequire = 'league/flysystem-sftp-v3';
-
+        $adapter_fqcn = Sftp_Adapter::class;
+        $package_require = 'league/flysystem-sftp-v3';
         // Prevent BC
-        if (class_exists(SftpAdapterLegacy::class)) {
+        if (class_exists(Sftp_Adapter_Legacy::class)) {
             trigger_deprecation('league/flysystem-bundle', '2.2', '"league/flysystem-sftp" is deprecated, use "league/flysystem-sftp-v3" instead.');
-
-            $adapterFqcn = SftpAdapterLegacy::class;
-            $packageRequire = 'league/flysystem-sftp';
+            $adapter_fqcn = Sftp_Adapter_Legacy::class;
+            $package_require = 'league/flysystem-sftp';
         }
-
-        return [
-            $adapterFqcn => $packageRequire,
-        ];
+        return [$adapter_fqcn => $package_require];
     }
-
-    protected function configureOptions(OptionsResolver $resolver): void
+    protected function configure_options(Options_Resolver $resolver): void
     {
-        $resolver->setRequired('host');
-        $resolver->setAllowedTypes('host', 'string');
-
-        $resolver->setRequired('username');
-        $resolver->setAllowedTypes('username', 'string');
-
-        $resolver->setDefault('password', null);
-        $resolver->setAllowedTypes('password', ['string', 'null']);
-
-        $resolver->setDefault('port', 22);
-        $resolver->setAllowedTypes('port', 'scalar');
-
-        $resolver->setDefault('root', '');
-        $resolver->setAllowedTypes('root', 'string');
-
-        $resolver->setDefault('privateKey', null);
-        $resolver->setAllowedTypes('privateKey', ['string', 'null']);
-
-        $resolver->setDefault('passphrase', null);
-        $resolver->setAllowedTypes('passphrase', ['string', 'null']);
-
-        $resolver->setDefault('hostFingerprint', null);
-        $resolver->setAllowedTypes('hostFingerprint', ['string', 'null']);
-
-        $resolver->setDefault('timeout', 90);
-        $resolver->setAllowedTypes('timeout', 'scalar');
-
-        $resolver->setDefault('directoryPerm', 0744);
-        $resolver->setAllowedTypes('directoryPerm', 'scalar');
-
-        $resolver->setDefault('permPrivate', 0700);
-        $resolver->setAllowedTypes('permPrivate', 'scalar');
-
-        $resolver->setDefault('permPublic', 0744);
-        $resolver->setAllowedTypes('permPublic', 'scalar');
-
-        $resolver->setDefault('connectivityChecker', null);
-        $resolver->setAllowedTypes('connectivityChecker', ['string', 'null']);
-
-        $resolver->setDefault('preferredAlgorithms', []);
-        $resolver->setAllowedTypes('preferredAlgorithms', 'array');
-
-        $this->configureUnixOptions($resolver);
+        $resolver->set_required('host');
+        $resolver->set_allowed_types('host', 'string');
+        $resolver->set_required('username');
+        $resolver->set_allowed_types('username', 'string');
+        $resolver->set_default('password', null);
+        $resolver->set_allowed_types('password', ['string', 'null']);
+        $resolver->set_default('port', 22);
+        $resolver->set_allowed_types('port', 'scalar');
+        $resolver->set_default('root', '');
+        $resolver->set_allowed_types('root', 'string');
+        $resolver->set_default('privateKey', null);
+        $resolver->set_allowed_types('privateKey', ['string', 'null']);
+        $resolver->set_default('passphrase', null);
+        $resolver->set_allowed_types('passphrase', ['string', 'null']);
+        $resolver->set_default('hostFingerprint', null);
+        $resolver->set_allowed_types('hostFingerprint', ['string', 'null']);
+        $resolver->set_default('timeout', 90);
+        $resolver->set_allowed_types('timeout', 'scalar');
+        $resolver->set_default('directoryPerm', 0744);
+        $resolver->set_allowed_types('directoryPerm', 'scalar');
+        $resolver->set_default('permPrivate', 0700);
+        $resolver->set_allowed_types('permPrivate', 'scalar');
+        $resolver->set_default('permPublic', 0744);
+        $resolver->set_allowed_types('permPublic', 'scalar');
+        $resolver->set_default('connectivityChecker', null);
+        $resolver->set_allowed_types('connectivityChecker', ['string', 'null']);
+        $resolver->set_default('preferredAlgorithms', []);
+        $resolver->set_allowed_types('preferredAlgorithms', 'array');
+        $this->configure_unix_options($resolver);
     }
-
-    protected function configureDefinition(Definition $definition, array $options, ?string $defaultVisibilityForDirectories): void
+    protected function configure_definition(Definition $definition, array $options, ?string $default_visibility_for_directories): void
     {
         // Prevent BC
-        $adapterFqcn = SftpAdapter::class;
-        $connectionFqcn = SftpConnectionProvider::class;
-        if (class_exists(SftpAdapterLegacy::class)) {
-            $adapterFqcn = SftpAdapterLegacy::class;
-            $connectionFqcn = SftpConnectionProviderLegacy::class;
+        $adapter_fqcn = Sftp_Adapter::class;
+        $connection_fqcn = Sftp_Connection_Provider::class;
+        if (class_exists(Sftp_Adapter_Legacy::class)) {
+            $adapter_fqcn = Sftp_Adapter_Legacy::class;
+            $connection_fqcn = Sftp_Connection_Provider_Legacy::class;
         }
-
         if (null !== $options['connectivityChecker']) {
             $options['connectivityChecker'] = new Reference($options['connectivityChecker']);
         }
-
-        $definition->setClass($adapterFqcn);
-        $definition->setArgument(
-            0,
-            (new Definition($connectionFqcn))
-                ->setFactory([$connectionFqcn, 'fromArray'])
-                ->addArgument($options)
-                ->setShared(false)
-        );
-        $definition->setArgument(1, $options['root']);
-        $definition->setArgument(2, $this->createUnixDefinition($options['permissions'], $defaultVisibilityForDirectories ?? Visibility::PRIVATE));
+        $definition->set_class($adapter_fqcn);
+        $definition->set_argument(0, (new Definition($connection_fqcn))->set_factory([$connection_fqcn, 'fromArray'])->add_argument($options)->set_shared(false));
+        $definition->set_argument(1, $options['root']);
+        $definition->set_argument(2, $this->create_unix_definition($options['permissions'], $default_visibility_for_directories ?? Visibility::PRIVATE));
     }
 }

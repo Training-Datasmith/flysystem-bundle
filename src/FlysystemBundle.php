@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /*
  * This file is part of the flysystem-bundle project.
  *
@@ -10,24 +9,21 @@ declare(strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+namespace League\Flysystem_Bundle;
 
-namespace League\FlysystemBundle;
-
-use League\FlysystemBundle\DependencyInjection\Compiler\GcloudFactoryPass;
-use League\FlysystemBundle\DependencyInjection\Compiler\LazyFactoryPass;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\HttpKernel\Bundle\Bundle;
-
+use League\Flysystem_Bundle\Dependency_Injection\Compiler\Gcloud_Factory_Pass;
+use League\Flysystem_Bundle\Dependency_Injection\Compiler\Lazy_Factory_Pass;
+use Symfony\Component\Dependency_Injection\Container_Builder;
+use Symfony\Component\Http_Kernel\Bundle\Bundle;
 /**
  * @author Titouan Galopin <galopintitouan@gmail.com>
  */
-final class FlysystemBundle extends Bundle
+final class Flysystem_Bundle extends Bundle
 {
-    public function build(ContainerBuilder $container): void
+    public function build(Container_Builder $container): void
     {
         parent::build($container);
-
-        $container->addCompilerPass(new LazyFactoryPass());
-        $container->addCompilerPass(new GcloudFactoryPass());
+        $container->add_compiler_pass(new Lazy_Factory_Pass());
+        $container->add_compiler_pass(new Gcloud_Factory_Pass());
     }
 }

@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /*
  * This file is part of the flysystem-bundle project.
  *
@@ -10,22 +9,19 @@ declare(strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+namespace League\Flysystem_Bundle\Adapter\Builder;
 
-namespace League\FlysystemBundle\Adapter\Builder;
-
-use Symfony\Component\DependencyInjection\Definition;
-
+use Symfony\Component\Dependency_Injection\Definition;
 /**
  * @author Titouan Galopin <galopintitouan@gmail.com>
  *
  * @internal
  */
-interface AdapterDefinitionBuilderInterface
+interface Adapter_Definition_Builder_Interface
 {
-    public function getName(): string;
-
+    public function get_name(): string;
     /**
      * Create the definition for this builder's adapter given an array of options.
      */
-    public function createDefinition(array $options, ?string $defaultVisibilityForDirectories): Definition;
+    public function create_definition(array $options, ?string $default_visibility_for_directories): Definition;
 }
