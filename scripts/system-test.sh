@@ -38,39 +38,8 @@ run_composer_install() {
     bash -lc "$*"
 }
 
-validate_phpunit_output() {
-  local output_file="$1"
-  if grep -Eq '^(PHP )?Warning:' "${output_file}"; then
-    log "PHPUnit output contains Warning:"
-    grep -E '^(PHP )?Warning:' "${output_file}" || true
-    return 1
-  fi
-  if grep -Eq '^(PHP )?Deprecated:' "${output_file}"; then
-    log "PHPUnit output contains Deprecated:"
-    grep -E '^(PHP )?Deprecated:' "${output_file}" || true
-    return 1
-  fi
-  local deprecation_heading
-  for deprecation_heading in \
-    'Unsilenced deprecation notices' \
-    'Remaining self deprecation notices' \
-    'Remaining direct deprecation notices' \
-    'Remaining indirect deprecation notices' \
-    'Remaining deprecations' \
-    ; do
-    if grep -Fq "${deprecation_heading}" "${output_file}"; then
-      log "PHPUnit output contains Symfony deprecation summary: ${deprecation_heading}"
-      grep -F "${deprecation_heading}" "${output_file}" || true
-      return 1
-    fi
-  done
-  if ! grep -Eq '^OK \([0-9]+ tests?, [0-9]+ assertions?\)$' "${output_file}"; then
-    log 'PHPUnit output is missing strict success line: OK (N tests, M assertions)'
-    return 1
-  fi
-  grep -Eo '^OK \([0-9]+ tests?, [0-9]+ assertions?\)$' "${output_file}" | tail -n 1
-  return 0
-}
+# shellcheck source=scripts/validate-phpunit-output.sh
+source "${ROOT_DIR}/scripts/validate-phpunit-output.sh"
 
 wait_for_sidecars() {
   run_in_app '
@@ -95,14 +64,8 @@ if ! s3_code="$(curl -sS -o /tmp/s3-bucket-body.txt -w "%{http_code}" -X PUT "ht
   echo "S3 emulator unreachable"
   exit 1
 fi
-if [[ "${s3_code}" != "200" ]]; then
-  if grep -qiE "BucketAlreadyOwnedByYou|BucketAlreadyExists|already exists" /tmp/s3-bucket-body.txt 2>/dev/null; then
-  :
-  else
-    echo "S3 bucket create failed (HTTP ${s3_code}):"
-    cat /tmp/s3-bucket-body.txt
-    exit 1
-  fi
+if ! php /app/scripts/classify-bucket-response.php s3 "${s3_code}" /tmp/s3-bucket-body.txt; then
+  exit 1
 fi
 
 if ! gcs_code="$(curl -sS -o /tmp/gcs-bucket-body.txt -w "%{http_code}" -X POST "http://gcs:4443/storage/v1/b?project=test" \
@@ -111,14 +74,8 @@ if ! gcs_code="$(curl -sS -o /tmp/gcs-bucket-body.txt -w "%{http_code}" -X POST 
   echo "GCS emulator unreachable"
   exit 1
 fi
-if [[ "${gcs_code}" != "200" ]]; then
-  if grep -qiE "already exists|409|AlreadyExists" /tmp/gcs-bucket-body.txt 2>/dev/null; then
-  :
-  else
-    echo "GCS bucket create failed (HTTP ${gcs_code}):"
-    cat /tmp/gcs-bucket-body.txt
-    exit 1
-  fi
+if ! php /app/scripts/classify-bucket-response.php gcs "${gcs_code}" /tmp/gcs-bucket-body.txt; then
+  exit 1
 fi
 '
 }
