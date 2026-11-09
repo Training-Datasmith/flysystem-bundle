@@ -152,7 +152,6 @@ class ClusterPackageExecutionTest extends TestCase
         self::assertNotNull($request);
         self::assertInstanceOf(RequestInterface::class, $request);
         self::assertSame('gcs', $request->getUri()->getHost());
-        self::assertContains(RequestInterface::class, class_implements($request));
     }
 
     private function filesystem(string $storageName): FilesystemOperator
