@@ -1,0 +1,69 @@
+services:
+    app:
+        build:
+            context: .
+            dockerfile: docker/system-test/Dockerfile
+        working_dir: /app
+        volumes:
+            - .:/app
+        environment:
+            SYMFONY_DEPRECATIONS_HELPER: max[total]=0
+        depends_on:
+            - ftp
+            - sftp
+            - s3
+            - gcs
+        networks:
+            - flysystem-system-test
+
+    ftp:
+        image: stilliard/pure-ftpd:bookworm-1.0.50@sha256:573d515a906d8856898d512db98ec684e99f4ab6d02d147db9ac0713d62e7747
+        environment:
+            PUBLICHOST: 127.0.0.1
+            FTP_USER_NAME: flysystem
+            FTP_USER_PASS: flysystem
+            FTP_USER_HOME: /home/flysystem
+            FTP_PASSIVE_PORTS: 30000:30009
+            ADDED_FLAGS: '-S 0.0.0.0,21'
+        ports:
+            - '127.0.0.1:21:21'
+            - '127.0.0.1:30000-30009:30000-30009'
+        networks:
+            - flysystem-system-test
+
+    sftp:
+        image: atmoz/sftp:debian@sha256:54efe2a6cda236d713042e17a836d970342eea5a7568e4f60800432cec4da205
+        command: flysystem:flysystem:::upload
+        ports:
+            - '127.0.0.1:2222:22'
+        networks:
+            - flysystem-system-test
+
+    s3:
+        image: adobe/s3mock:5.2.3@sha256:969fd482c0f3c227f9dc072a352c5387aec606c213200ca1b236bf37fa299031
+        environment:
+            INITIAL_BUCKETS: flysystem-system-test
+        ports:
+            - '127.0.0.1:9090:9090'
+        networks:
+            - flysystem-system-test
+
+    gcs:
+        image: fsouza/fake-gcs-server:1.56.1@sha256:af5fcc12a29db42953c9659dc44b478c164b78f6303390cf25fc93037d78522b
+        command:
+            - -scheme
+            - http
+            - -port
+            - "4443"
+            - -public-host
+            - 127.0.0.1:4443
+            - -external-url
+            - http://127.0.0.1:4443
+        ports:
+            - '127.0.0.1:4443:4443'
+        networks:
+            - flysystem-system-test
+
+networks:
+    flysystem-system-test:
+        driver: bridge

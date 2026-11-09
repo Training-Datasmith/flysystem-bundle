@@ -15,6 +15,13 @@
             "email": "galopintitouan@gmail.com"
         }
     ],
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://raw.githubusercontent.com/Training-Datasmith/composer-index/remote-test-2026-11-09",
+            "canonical": false
+        }
+    ],
     "autoload": {
         "psr-4": {
             "League\\FlysystemBundle\\": "src"
@@ -37,16 +44,20 @@
     "require-dev": {
         "doctrine/mongodb-odm": "^2.0",
         "league/flysystem-async-aws-s3": "^3.1",
-        "league/flysystem-aws-s3-v3": "^3.1",
+        "league/flysystem-aws-s3-v3": "dev-remote-test-2026-10-07 as 3.32.0",
         "league/flysystem-azure-blob-storage": "^3.1",
-        "league/flysystem-ftp": "^3.1",
-        "league/flysystem-google-cloud-storage": "^3.1",
+        "league/flysystem-ftp": "dev-remote-test-2026-10-07 as 3.31.0",
+        "league/flysystem-google-cloud-storage": "dev-remote-test-2026-10-07 as 3.31.0",
         "league/flysystem-gridfs": "^3.28",
-        "league/flysystem-memory": "^3.1",
-        "league/flysystem-read-only": "^3.15",
-        "league/flysystem-sftp-v3": "^3.1",
+        "league/flysystem-local": "dev-remote-test-2026-10-07 as 3.31.0",
+        "league/flysystem-memory": "dev-remote-test-2026-10-07 as 3.31.0",
+        "league/flysystem-read-only": "dev-remote-test-2026-10-07 as 3.31.0",
+        "league/flysystem-sftp-v3": "dev-remote-test-2026-10-07 as 3.31.0",
         "league/flysystem-webdav": "^3.29",
         "platformcommunity/flysystem-bunnycdn": "^3.3",
+        "psr/http-client": "dev-remote-test-2026-10-07 as 1.0.3",
+        "psr/http-factory": "dev-remote-test-2026-10-07 as 1.1.0",
+        "psr/http-message": "dev-remote-test-2026-10-07 as 2.0.0",
         "symfony/dotenv": "^6.0 || ^7.0 || ^8.0",
         "symfony/framework-bundle": "^6.0 || ^7.0 || ^8.0",
         "symfony/phpunit-bridge": "^6.0 || ^7.0 || ^8.0",
@@ -59,5 +70,5 @@
         "sort-packages": true
     },
     "minimum-stability": "dev",
-    "prefer-stable": false
+    "prefer-stable": true
 }

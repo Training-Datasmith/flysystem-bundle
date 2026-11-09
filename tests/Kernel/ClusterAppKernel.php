@@ -1,0 +1,34 @@
+<?php
+
+/*
+ * This file is part of the flysystem-bundle project.
+ *
+ * (c) Titouan Galopin <galopintitouan@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace Tests\League\FlysystemBundle\Kernel;
+
+use League\FlysystemBundle\FlysystemBundle;
+use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
+use Symfony\Component\Config\Loader\LoaderInterface;
+use Symfony\Component\HttpKernel\Kernel;
+
+class ClusterAppKernel extends Kernel
+{
+    use AppKernelTrait;
+
+    public function registerBundles(): iterable
+    {
+        return [new FrameworkBundle(), new FlysystemBundle()];
+    }
+
+    public function registerContainerConfiguration(LoaderInterface $loader): void
+    {
+        $loader->load(__DIR__.'/config/framework.php');
+        $loader->load(__DIR__.'/config/cluster-services.php');
+        $loader->load(__DIR__.'/config/cluster.php');
+    }
+}
