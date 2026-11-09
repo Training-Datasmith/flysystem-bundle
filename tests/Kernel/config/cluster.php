@@ -30,7 +30,7 @@ return static function (ContainerConfigurator $container) {
             'cluster_ftp' => [
                 'adapter' => 'ftp',
                 'options' => [
-                    'host' => '127.0.0.1',
+                    'host' => 'ftp',
                     'username' => 'flysystem',
                     'password' => 'flysystem',
                     'port' => 21,
@@ -44,10 +44,10 @@ return static function (ContainerConfigurator $container) {
             'cluster_sftp' => [
                 'adapter' => 'sftp',
                 'options' => [
-                    'host' => '127.0.0.1',
+                    'host' => 'sftp',
                     'username' => 'flysystem',
                     'password' => 'flysystem',
-                    'port' => 2222,
+                    'port' => 22,
                     'root' => '/upload',
                     'timeout' => 30,
                 ],

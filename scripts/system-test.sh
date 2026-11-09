@@ -24,21 +24,18 @@ log() {
 }
 
 run_in_app() {
-  "${DOCKER[@]}" run --rm \
-    --network host \
-    -v "${ROOT_DIR}:/app" \
-    -w /app \
-  -e SYMFONY_DEPRECATIONS_HELPER=max[total]=0 \
-    "${APP_IMAGE}" \
-    bash -lc "$1"
+  "${COMPOSE[@]}" run --rm --no-TTY app bash -lc "$1"
 }
 
-run_in_app_host_network() {
+run_composer_install() {
+  local image="$1"
+  shift
   "${DOCKER[@]}" run --rm --network host \
     -v "${ROOT_DIR}:/app" \
     -w /app \
-    "${APP_IMAGE}" \
-    bash -lc "$1"
+    -e COMPOSER_ALLOW_SUPERUSER=1 \
+    "${image}" \
+    bash -lc "$*"
 }
 
 validate_phpunit_output() {
@@ -53,12 +50,77 @@ validate_phpunit_output() {
     grep -E '^(PHP )?Deprecated:' "${output_file}" || true
     return 1
   fi
+  local deprecation_heading
+  for deprecation_heading in \
+    'Unsilenced deprecation notices' \
+    'Remaining self deprecation notices' \
+    'Remaining direct deprecation notices' \
+    'Remaining indirect deprecation notices' \
+    'Remaining deprecations' \
+    ; do
+    if grep -Fq "${deprecation_heading}" "${output_file}"; then
+      log "PHPUnit output contains Symfony deprecation summary: ${deprecation_heading}"
+      grep -F "${deprecation_heading}" "${output_file}" || true
+      return 1
+    fi
+  done
   if ! grep -Eq '^OK \([0-9]+ tests?, [0-9]+ assertions?\)$' "${output_file}"; then
     log 'PHPUnit output is missing strict success line: OK (N tests, M assertions)'
     return 1
   fi
   grep -Eo '^OK \([0-9]+ tests?, [0-9]+ assertions?\)$' "${output_file}" | tail -n 1
   return 0
+}
+
+wait_for_sidecars() {
+  run_in_app '
+set -euo pipefail
+for attempt in $(seq 1 60); do
+  s3_code="$(curl -sS -o /dev/null -w "%{http_code}" --max-time 2 "http://s3:9090/" || true)"
+  gcs_code="$(curl -sS -o /dev/null -w "%{http_code}" --max-time 2 "http://gcs:4443/storage/v1/b?project=test" || true)"
+  if [[ "${s3_code}" == "200" && "${gcs_code}" != "000" && -n "${gcs_code}" ]]; then
+    exit 0
+  fi
+  sleep 1
+done
+echo "Sidecar emulators did not become reachable in time"
+exit 1
+'
+}
+
+create_cluster_buckets() {
+  run_in_app '
+set -euo pipefail
+if ! s3_code="$(curl -sS -o /tmp/s3-bucket-body.txt -w "%{http_code}" -X PUT "http://s3:9090/flysystem-system-test" -H "Content-Length: 0")"; then
+  echo "S3 emulator unreachable"
+  exit 1
+fi
+if [[ "${s3_code}" != "200" ]]; then
+  if grep -qiE "BucketAlreadyOwnedByYou|BucketAlreadyExists|already exists" /tmp/s3-bucket-body.txt 2>/dev/null; then
+  :
+  else
+    echo "S3 bucket create failed (HTTP ${s3_code}):"
+    cat /tmp/s3-bucket-body.txt
+    exit 1
+  fi
+fi
+
+if ! gcs_code="$(curl -sS -o /tmp/gcs-bucket-body.txt -w "%{http_code}" -X POST "http://gcs:4443/storage/v1/b?project=test" \
+  -H "Content-Type: application/json" \
+  -d "{\"name\":\"flysystem-system-test\"}")"; then
+  echo "GCS emulator unreachable"
+  exit 1
+fi
+if [[ "${gcs_code}" != "200" ]]; then
+  if grep -qiE "already exists|409|AlreadyExists" /tmp/gcs-bucket-body.txt 2>/dev/null; then
+  :
+  else
+    echo "GCS bucket create failed (HTTP ${gcs_code}):"
+    cat /tmp/gcs-bucket-body.txt
+    exit 1
+  fi
+fi
+'
 }
 
 mkdir -p "${ROOT_DIR}/.system-test"
@@ -79,50 +141,52 @@ fi
 log "Starting sidecar services"
 "${COMPOSE[@]}" up -d ftp sftp s3 gcs
 
-sleep 5
+log "Waiting for sidecar emulators"
+wait_for_sidecars
 
 log "Creating S3 and GCS buckets for cluster tests"
-curl -sf -X PUT "http://127.0.0.1:9090/flysystem-system-test" -H "Content-Length: 0" -o /dev/null || true
-curl -sf -X POST "http://127.0.0.1:4443/storage/v1/b?project=test" \
-  -H "Content-Type: application/json" \
-  -d '{"name":"flysystem-system-test"}' -o /dev/null || true
+create_cluster_buckets
 
-INSTALL_DEPS='
+COMPOSER_UPDATE='
 set -euo pipefail
 cd /app
 export COMPOSER_ALLOW_SUPERUSER=1
 install -m 0755 /app/.system-test/composer.phar /usr/local/bin/composer
 git config --global --add safe.directory /app
 php /app/.system-test/composer.phar update --no-interaction --prefer-stable --no-progress
+'
+
+COMPOSER_AUDIT='
+set -euo pipefail
+cd /app
+export COMPOSER_ALLOW_SUPERUSER=1
+install -m 0755 /app/.system-test/composer.phar /usr/local/bin/composer
 vendor/bin/simple-phpunit --version > /dev/null
-set +e
-php /app/.system-test/composer.phar audit --no-interaction > /tmp/composer-audit.log 2>&1
-audit_status=$?
-set -e
-cat /tmp/composer-audit.log
-if ! grep -q "No security vulnerability advisories found." /tmp/composer-audit.log; then
-  exit "${audit_status}"
-fi
+php /app/.system-test/composer.phar audit --no-interaction --abandoned=report
 '
 
 RUN_TESTS='
 set -euo pipefail
 cd /app
 export SYMFONY_DEPRECATIONS_HELPER=max[total]=0
-install -m 0755 /app/.system-test/composer.phar /usr/local/bin/composer || true
 php scripts/check-cluster-pins.php
 mkdir -p /app/.system-test
 vendor/bin/simple-phpunit --colors=never 2>&1 | tee /app/.system-test/phpunit.out
 '
 
-if ! run_in_app_host_network "${INSTALL_DEPS}"; then
-  log "Composer install/audit failed"
+if ! run_composer_install "${APP_IMAGE}" "${COMPOSER_UPDATE}"; then
+  log "Composer update failed"
   "${COMPOSE[@]}" down 2>/dev/null || true
   exit 1
 fi
 
-OUTPUT_FILE="$(mktemp)"
-if ! run_in_app "${RUN_TESTS}" | tee "${OUTPUT_FILE}"; then
+if ! run_composer_install "${APP_IMAGE}" "${COMPOSER_AUDIT}"; then
+  log "Composer audit failed"
+  "${COMPOSE[@]}" down 2>/dev/null || true
+  exit 1
+fi
+
+if ! run_in_app "${RUN_TESTS}"; then
   log "System test commands failed"
   "${COMPOSE[@]}" down
   exit 1
@@ -139,9 +203,7 @@ OK_LINE="$(grep -Eo '^OK \([0-9]+ tests?, [0-9]+ assertions?\)$' "${PHPUNIT_OUT}
 log "Strict success line: ${OK_LINE}"
 
 log "Installed cluster references:"
-"${DOCKER[@]}" run --rm --network host \
-  -v "${ROOT_DIR}:/app" -w /app "${APP_IMAGE}" \
-  php scripts/print-cluster-references.php
+run_in_app 'php scripts/print-cluster-references.php'
 
 "${COMPOSE[@]}" down
 

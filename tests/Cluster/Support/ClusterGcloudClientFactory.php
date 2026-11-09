@@ -16,48 +16,43 @@ use Google\Cloud\Storage\StorageClient;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
-use GuzzleHttp\Psr7\HttpFactory;
 use Psr\Http\Message\RequestInterface;
 
 final class ClusterGcloudClientFactory
 {
-    private static ?ClusterGcloudHttpRecorder $recorder = null;
+    private static ?ClusterGcloudRequestRecorder $recorder = null;
 
     public static function create(): StorageClient
     {
         $recorder = self::recorder();
 
         $stack = HandlerStack::create();
-        $stack->push(Middleware::mapRequest(static function (RequestInterface $request) use ($recorder): RequestInterface {
-            $recorder->createRequest($request->getMethod(), (string) $request->getUri());
+        $stack->push(Middleware::mapRequest(
+            static function (RequestInterface $request) use ($recorder): RequestInterface {
+                $recorder->record($request);
 
-            return $request;
-        }));
-        $stack->push(Middleware::tap(null, static function () use ($recorder): void {
-            ++$recorder->sendRequestCalls;
-        }));
+                return $request;
+            }
+        ));
 
         $guzzle = new Client([
             'handler' => $stack,
-            'base_uri' => 'http://127.0.0.1:4443',
+            'base_uri' => 'http://gcs:4443',
         ]);
 
         $httpHandler = HttpHandlerFactory::build($guzzle);
 
         return new StorageClient([
             'projectId' => 'test',
-            'apiEndpoint' => 'http://127.0.0.1:4443',
+            'apiEndpoint' => 'http://gcs:4443',
             'authHttpHandler' => $httpHandler,
             'httpHandler' => $httpHandler,
         ]);
     }
 
-    public static function recorder(): ClusterGcloudHttpRecorder
+    public static function recorder(): ClusterGcloudRequestRecorder
     {
-        self::$recorder ??= new ClusterGcloudHttpRecorder(
-            new Client(),
-            new HttpFactory(),
-        );
+        self::$recorder ??= new ClusterGcloudRequestRecorder();
 
         return self::$recorder;
     }

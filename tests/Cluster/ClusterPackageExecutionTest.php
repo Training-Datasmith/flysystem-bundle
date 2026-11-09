@@ -14,6 +14,7 @@ namespace Tests\League\FlysystemBundle\Cluster;
 use League\Flysystem\FilesystemOperator;
 use League\Flysystem\UnableToWriteFile;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\RequestInterface;
 use Tests\League\FlysystemBundle\Cluster\Support\ClusterAwsClientFactory;
 use Tests\League\FlysystemBundle\Cluster\Support\ClusterGcloudClientFactory;
 use Tests\League\FlysystemBundle\Kernel\ClusterAppKernel;
@@ -131,26 +132,27 @@ class ClusterPackageExecutionTest extends TestCase
 
         $request = $recorder->getLastRequest();
         self::assertNotNull($request);
-        self::assertStringContainsString('127.0.0.1', (string) $request->getUri()->getHost());
+        self::assertSame('s3', $request->getUri()->getHost());
     }
 
-    public function testClusterGcloudStorageExecutesGcloudAdapterAndPsrHttp(): void
+    public function testClusterGcloudStorageExecutesGcloudAdapterAndPsr7Request(): void
     {
         $path = 'gcloud/'.bin2hex(random_bytes(8)).'.txt';
         $contents = 'cluster-gcloud';
 
-        $this->kernel->getContainer()->get('cluster_gcloud_client');
         $recorder = ClusterGcloudClientFactory::recorder();
-        $recorder->createRequestCalls = 0;
-        $recorder->sendRequestCalls = 0;
+        $recorder->reset();
 
         $fs = $this->filesystem('cluster_gcloud');
         $fs->write($path, $contents);
         self::assertSame($contents, $fs->read($path));
         $fs->delete($path);
 
-        self::assertGreaterThan(0, $recorder->sendRequestCalls, 'Expected PSR-18 sendRequest during gcloud storage write.');
-        self::assertGreaterThan(0, $recorder->createRequestCalls, 'Expected PSR-17 createRequest during gcloud storage write.');
+        $request = $recorder->getLastRequest();
+        self::assertNotNull($request);
+        self::assertInstanceOf(RequestInterface::class, $request);
+        self::assertSame('gcs', $request->getUri()->getHost());
+        self::assertContains(RequestInterface::class, class_implements($request));
     }
 
     private function filesystem(string $storageName): FilesystemOperator

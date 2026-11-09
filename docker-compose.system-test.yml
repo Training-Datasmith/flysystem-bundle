@@ -19,7 +19,7 @@ services:
     ftp:
         image: stilliard/pure-ftpd:bookworm-1.0.50@sha256:573d515a906d8856898d512db98ec684e99f4ab6d02d147db9ac0713d62e7747
         environment:
-            PUBLICHOST: 127.0.0.1
+            PUBLICHOST: ftp
             FTP_USER_NAME: flysystem
             FTP_USER_PASS: flysystem
             FTP_USER_HOME: /home/flysystem
@@ -42,7 +42,7 @@ services:
     s3:
         image: adobe/s3mock:5.2.3@sha256:969fd482c0f3c227f9dc072a352c5387aec606c213200ca1b236bf37fa299031
         environment:
-            INITIAL_BUCKETS: flysystem-system-test
+            COM_ADOBE_TESTING_S3MOCK_STORE_INITIAL_BUCKETS: flysystem-system-test
         ports:
             - '127.0.0.1:9090:9090'
         networks:
@@ -56,9 +56,9 @@ services:
             - -port
             - "4443"
             - -public-host
-            - 127.0.0.1:4443
+            - gcs:4443
             - -external-url
-            - http://127.0.0.1:4443
+            - http://gcs:4443
         ports:
             - '127.0.0.1:4443:4443'
         networks:

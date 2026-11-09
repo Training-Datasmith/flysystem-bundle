@@ -26,7 +26,7 @@ final class ClusterAwsClientFactory
         $client = new S3Client([
             'version' => 'latest',
             'region' => 'us-east-1',
-            'endpoint' => 'http://127.0.0.1:9090',
+            'endpoint' => 'http://s3:9090',
             'use_path_style_endpoint' => true,
             'credentials' => [
                 'key' => 'foo',
